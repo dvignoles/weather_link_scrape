@@ -118,3 +118,4 @@ dmypy.json
 #Private Data
 /data
 wl_scrape_*.sh
+run_*.sh
