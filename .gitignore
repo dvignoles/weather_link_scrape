@@ -119,3 +119,8 @@ dmypy.json
 /data
 wl_scrape_*.sh
 run_*.sh
+
+#Visual Studio Code
+.vs/ProjectSettings.json
+.vs/VSWorkspaceState.json
+.vs/wl_scrape/v15/.suo
