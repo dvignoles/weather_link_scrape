@@ -12,14 +12,18 @@ from re import search
 from datetime import datetime
 from os import getcwd,chdir,makedirs
 
+###---CONFIG---###
 #ElementTree.Element name of Observation Time attribute
 OBSERVATION = 'observation_time'
 #Regular expresion to parse date string from Observation Time attribute
-OBSERVATION_PARSE = r'\w{3} \d{1,2} \d{4}, \d{1,2}:\d{2} \w{2} \w{3}'
+OBSERVATION_PARSE = r'\w{3} \d{1,2} \d{4}, \d{1,2}:\d{2} \w{2}'
+#UTC offset (timezone) ie for EST UTC offset = -0500
+UTC = '-0500'
 #Format of parsed date to for strptime
-DATE_FORMAT = '%b %d %Y, %I:%M %p %Z'
+DATE_FORMAT = '%b %d %Y, %I:%M %p %z'
 #Format for strftime to name files
 OBSERVATION_STR = '%Y-%m-%d_%H-%M'
+###------------###
 
 def write_xml(url):
     """
@@ -54,7 +58,8 @@ def get_obs_time(tree):
     """
     observation_time = tree.getroot().find(OBSERVATION).text
     match = search(OBSERVATION_PARSE,observation_time)
-    return(datetime.strptime(match.group(),DATE_FORMAT))
+    date_str = match.group()+' '+ UTC
+    return(datetime.strptime(date_str,DATE_FORMAT))
 
 def get_tree(url):
     """
