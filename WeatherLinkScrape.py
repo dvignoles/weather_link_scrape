@@ -11,6 +11,7 @@ from xml.etree import ElementTree as ET
 from re import search
 from datetime import datetime
 from os import getcwd,chdir,makedirs
+from bs4 import BeautifulSoup
 
 ###---CONFIG---###
 #ElementTree.Element name of Observation Time attribute
@@ -24,6 +25,19 @@ DATE_FORMAT = '%b %d %Y, %I:%M %p %z'
 #Format for strftime to name files
 OBSERVATION_STR = '%Y-%m-%d_%H-%M'
 ###------------###
+
+CURRENT = [
+    'observation_time_rfc822','station_name','dewpoint_c','dewpoint_f','heat_index_c','heat_index_f',
+    'location','latitude','longitude','pressure_in','pressure_mb','relative_humidity','solar_radiation',
+    'sunrise','sunset','temp_c','temp_f','uv_index','wind_degrees','wind_dir','wind_kt','wind_mph>',
+    'windchill_c','windchill_f'
+]
+
+def get_soup(url):
+    soup = BeautifulSoup(simple_get(url),'xml')
+    observations = list(map(lambda tag:soup.find(tag),CURRENT))
+    return observations
+    #note to self, access element.Tag.name,element.Tag
 
 def write_xml(url):
     """
@@ -73,13 +87,16 @@ def get_tree(url):
 def simple_get(url):
     """
     Attempts to get the content at `url` by making an HTTP GET request.
-    If the content-type of response is some kind of HTML/XML, return the
+    If the content-type of response is some kind of JSON/XML, return the
     text content, otherwise return None.
     """
     try:
         with closing(get(url, stream=True)) as resp:
             if is_good_response(resp):
-                return resp.content
+                if(is_xml(resp)):
+                    return resp.content
+                elif(is_json(resp)):
+                    return resp.json()
             else:
                 return None
 
@@ -95,8 +112,13 @@ def is_good_response(resp):
     content_type = resp.headers['Content-Type'].lower()
     return (resp.status_code == 200 
             and content_type is not None 
-            and content_type.find('xml') > -1)
+            and (is_xml(resp) or is_json(resp)))
 
+def is_xml(resp):
+    return resp.headers['Content-Type'].lower().find('xml') > -1
+
+def is_json(resp):
+    return resp.headers['Content-Type'].lower().find('json') > -1
 
 def log_error(e):
     """
