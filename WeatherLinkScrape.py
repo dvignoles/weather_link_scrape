@@ -8,7 +8,6 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from xml.etree import ElementTree as ET
-from re import search
 from datetime import datetime
 from os import getcwd,chdir,makedirs
 from bs4 import BeautifulSoup
@@ -16,19 +15,15 @@ from bs4 import BeautifulSoup
 
 ###---CONFIG---###
 #ElementTree.Element name of Observation Time attribute
-OBSERVATION = 'observation_time'
-#Regular expresion to parse date string from Observation Time attribute
-OBSERVATION_PARSE = r'\w{3} \d{1,2} \d{4}, \d{1,2}:\d{2} \w{2}'
-#UTC offset (timezone) ie for EST UTC offset = -0500
-UTC = '-0500'
+OBSERVATION = 'observation_time_rfc822'
 #Format of parsed date to for strptime
-DATE_FORMAT = '%b %d %Y, %I:%M %p %z'
+DATE_FORMAT = '%a, %d %b %Y %H:%M:%S %z'
 #Format for strftime to name files
 OBSERVATION_STR = '%Y-%m-%d_%H-%M'
 ###------------###
 
 CURRENT = [
-    'observation_time','station_name','dewpoint_c','dewpoint_f','heat_index_c','heat_index_f',
+    'observation_time_rfc822','station_name','dewpoint_c','dewpoint_f','heat_index_c','heat_index_f',
     'location','latitude','longitude','pressure_in','pressure_mb','relative_humidity','solar_radiation',
     'sunrise','sunset','temp_c','temp_f','uv_index','wind_degrees','wind_dir','wind_kt','wind_mph',
     'windchill_c','windchill_f'
@@ -47,13 +42,29 @@ def get_soup(url):
         tag = obs.name
         content = obs.contents[0]
 
-        try:
-            results[tag] = int(content)
-        except ValueError:
-            try: 
-                results[tag] = float(content)
-            except:
-                results[tag] = content
+        #reformat date
+        if(tag == 'observation_time_rfc822'):
+            dt = get_obs_time(content)
+
+            dt_str = dt.isoformat()
+            results['datetime'] = dt_str
+
+            date = dt.date().isoformat()
+            results['date'] = date
+
+            time = dt.time().isoformat()
+            results['time'] = time
+
+            tz = dt.tzinfo.tzname(dt)
+            results['timezone'] = tz
+        else:
+            try:
+                results[tag] = int(content)
+            except ValueError:
+                try: 
+                    results[tag] = float(content)
+                except:
+                    results[tag] = content
 
     return results
 
@@ -65,7 +76,7 @@ def write_xml(url):
     root_dir = getcwd()
 
     tree = get_tree(url)
-    date_time = get_obs_time(tree)
+    date_time = get_obs_time(parse_obs_time(tree))
     year = str(date_time.year)
     month = str(date_time.month)
     day = str(date_time.day)
@@ -83,14 +94,11 @@ def get_obs_time_str(date_time):
     """
     return(datetime.strftime(date_time,OBSERVATION_STR))
 
-def get_obs_time(tree):
-    """
-        Return datetime object parsed from tree
-    """
-    observation_time = tree.getroot().find(OBSERVATION).text
-    match = search(OBSERVATION_PARSE,observation_time)
-    date_str = match.group()+' '+ UTC
-    return(datetime.strptime(date_str,DATE_FORMAT))
+def get_obs_time(observation_unparsed):
+    return(datetime.strptime(observation_unparsed,DATE_FORMAT))
+
+def parse_obs_time(tree):
+    return tree.getroot().find(OBSERVATION).text
 
 def get_tree(url):
     """

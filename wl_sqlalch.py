@@ -9,15 +9,18 @@ def db_insert(url):
     metadata = MetaData()
 
     observation = Table('observation',metadata,
-        Column('observation_time',String(255),unique=True),
         Column('station_name', String(255),unique=False),
+        Column('location', String(255), unique=False),
+        Column('latitude', Float(), unique=False),
+        Column('longitude', Float(), unique=False),
+        Column('datetime',String(255),unique=True,primary_key=True),
+        Column('date',String(255),unique=False),
+        Column('time',String(255),unique=False),
+        Column('timezone',String(255),unique=False),
         Column('dewpoint_c', Float(), unique=False),
         Column('dewpoint_f', Float(), unique=False),
         Column('heat_index_c', Float(), unique=False),
         Column('heat_index_f', Float(), unique=False),
-        Column('location', String(255), unique=False),
-        Column('latitude', Float(), unique=False),
-        Column('longitude', Float(), unique=False),
         Column('pressure_in', Float(), unique=False),
         Column('pressure_mb', Float(), unique=False),
         Column('relative_humidity', Integer(),unique=False),
@@ -44,3 +47,4 @@ def db_insert(url):
         print('Observation Successfully recorded to Database')
     except IntegrityError:
         print('New Observation Not Found')
+        #TODO: Detect API stalling and send email alert
