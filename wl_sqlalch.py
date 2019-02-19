@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from WeatherLinkScrape import get_soup
 
 def db_insert(url):
-    engine = create_engine('sqlite:///ws.sqlite')
+    engine = create_engine('sqlite:////Users/user/ws.sqlite')
     connection = engine.connect()
     metadata = MetaData()
 
