@@ -2,6 +2,7 @@ from sqlalchemy import create_engine,MetaData, Table, insert
 from sqlalchemy import Column, String, Integer, Float, DateTime, Date, Time
 from sqlalchemy.exc import IntegrityError
 from WeatherLinkScrape import get_soup
+from datetime import datetime as dt
 
 def db_insert(url):
     engine = create_engine('sqlite:////Users/user/ws.sqlite')
@@ -44,7 +45,7 @@ def db_insert(url):
     query = insert(observation).values(soup)
     try:
         ResultProxy = connection.execute(query)
-        print('Observation Successfully recorded to Database')
+        print('Observation successfully recorded to database at: ',str(dt.now()))
     except IntegrityError:
-        print('New Observation Not Found')
+        print('No new Observation Found at: ',str(dt.now()))
         #TODO: Detect API stalling and send email alert
