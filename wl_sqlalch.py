@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine,MetaData, Table, insert
-from sqlalchemy import Column, String, Integer, Float
+from sqlalchemy import Column, String, Integer, Float, DateTime, Date, Time
 from sqlalchemy.exc import IntegrityError
 from WeatherLinkScrape import get_soup
 
@@ -13,9 +13,9 @@ def db_insert(url):
         Column('location', String(255), unique=False),
         Column('latitude', Float(), unique=False),
         Column('longitude', Float(), unique=False),
-        Column('datetime',String(255),unique=True,primary_key=True),
-        Column('date',String(255),unique=False),
-        Column('time',String(255),unique=False),
+        Column('datetime',DateTime(),unique=True,primary_key=True),
+        Column('date',Date(),unique=False),
+        Column('time',Time(),unique=False),
         Column('timezone',String(255),unique=False),
         Column('dewpoint_c', Float(), unique=False),
         Column('dewpoint_f', Float(), unique=False),

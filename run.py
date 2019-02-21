@@ -15,5 +15,4 @@ token = sys.argv[3]
 
 XML_URL = 'https://api.weatherlink.com/v1/NoaaExt.xml?user='+ username +'&pass=' + password +'&apiToken=' + token
 
-write_xml(XML_URL)
 db_insert(XML_URL)

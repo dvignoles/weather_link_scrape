@@ -46,14 +46,11 @@ def get_soup(url):
         if(tag == 'observation_time_rfc822'):
             dt = get_obs_time(content)
 
-            dt_str = dt.isoformat()
-            results['datetime'] = dt_str
+            results['datetime'] = dt
 
-            date = dt.date().isoformat()
-            results['date'] = date
+            results['date'] = dt.date()
 
-            time = dt.time().isoformat()
-            results['time'] = time
+            results['time'] = dt.time()
 
             tz = dt.tzinfo.tzname(dt)
             results['timezone'] = tz
