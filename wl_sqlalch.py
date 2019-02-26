@@ -1,10 +1,15 @@
 from sqlalchemy import create_engine,MetaData, Table, insert
 from sqlalchemy import Column, String, Integer, Float, DateTime, Date, Time
 from sqlalchemy.exc import IntegrityError
-from WeatherLinkScrape import get_soup
+from WeatherLinkScrape import get_soup,send_email
 from datetime import datetime as dt
+from time import sleep
 
-def db_insert(url):
+def db_insert(url,alert=None):
+    """
+        Connect to and insert an scraped observation from url(xml)
+        if alerts = True, send email alerts 
+    """
     engine = create_engine('sqlite:////Users/user/ws.sqlite')
     connection = engine.connect()
     metadata = MetaData()
@@ -41,11 +46,32 @@ def db_insert(url):
 
     metadata.create_all(engine)
 
-    soup = get_soup(url)
-    query = insert(observation).values(soup)
-    try:
-        ResultProxy = connection.execute(query)
-        print('Observation successfully recorded to database at: ',str(dt.now()))
-    except IntegrityError:
-        print('No new Observation Found at: ',str(dt.now()))
-        #TODO: Detect API stalling and send email alert
+    error_count = 0
+    while True:
+        soup = get_soup(url)
+        query = insert(observation).values(soup)
+        try:
+            ResultProxy = connection.execute(query)
+            print('Observation successfully recorded to database at: ',str(dt.now()))
+            error_count = 0
+        except IntegrityError:
+            print('No new Observation Found at: ',str(dt.now()))
+            error_count += 1
+        finally:
+            if error_count == 0:
+                sleep(600) #10 min
+            elif error_count < 11:
+                sleep(60) #1 min * 10
+            elif error_count < 16:
+                sleep(600) #10 min * 5
+            else:
+                print('Alert Triggered') 
+                if alert is not None:
+                    message = """\
+                    Subject: Alert
+
+                    Weather Station is stalled. 
+                    """
+                    send_email(alert['sender'],alert['sender_pass'],alert['receiver'],message)
+                sleep(3600 * 6) #1 hour * 6
+

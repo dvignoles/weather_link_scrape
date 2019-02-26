@@ -11,6 +11,7 @@ from xml.etree import ElementTree as ET
 from datetime import datetime
 from os import getcwd,chdir,makedirs
 from bs4 import BeautifulSoup
+import smtplib, ssl
 
 
 ###---CONFIG---###
@@ -28,6 +29,17 @@ CURRENT = [
     'sunrise','sunset','temp_c','temp_f','uv_index','wind_degrees','wind_dir','wind_kt','wind_mph',
     'windchill_c','windchill_f'
 ]
+
+def send_email(sender,password,receiver,message):
+    """
+        Send an email. Intended to alert admin when weather station stalls. 
+    """
+    port = 465
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+        server.login(sender, password)
+        server.sendmail(sender, receiver, message)
 
 def get_soup(url):
     """
