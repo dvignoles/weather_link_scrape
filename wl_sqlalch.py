@@ -4,13 +4,14 @@ from sqlalchemy.exc import IntegrityError
 from WeatherLinkScrape import get_soup,send_email
 from datetime import datetime as dt
 from time import sleep
+import os
 
 def db_insert(url,alert=None):
     """
         Connect to and insert an scraped observation from url(xml)
         if alerts = True, send email alerts 
     """
-    engine = create_engine('sqlite:////Users/user/ws.sqlite')
+    engine = create_engine(os.environ['WS_DB_URI'])
     connection = engine.connect()
     metadata = MetaData()
 

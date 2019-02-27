@@ -32,7 +32,7 @@ CURRENT = [
 
 def send_email(sender,password,receiver,message):
     """
-        Send an email. Intended to alert admin when weather station stalls. 
+        Send an email through gmail. Intended to alert admin when weather station stalls. 
     """
     port = 465
     context = ssl.create_default_context()

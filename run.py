@@ -7,18 +7,18 @@
 
 from WeatherLinkScrape import write_xml
 from wl_sqlalch import db_insert
-import sys
+import os
 
-username = sys.argv[1]
-password = sys.argv[2]
-token = sys.argv[3]
+username = os.environ['WS_USER_ID']
+password = os.environ['WS_PASS']
+token = os.environ['WS_TOKEN']
 
 #alerts
 #TODO: provide option to not use alerts
 email = {}
-email['sender'] = sys.argv[4]
-email['sender_pass'] = sys.argv[5]
-email['receiver'] = sys.argv[6]
+email['sender'] = os.environ.get('ALERT_SENDER')
+email['sender_pass'] = os.environ.get('ALERT_PASS')
+email['receiver'] = os.environ.get('ALERT_RECEIVER')
 
 XML_URL = 'https://api.weatherlink.com/v1/NoaaExt.xml?user='+ username +'&pass=' + password +'&apiToken=' + token
 
