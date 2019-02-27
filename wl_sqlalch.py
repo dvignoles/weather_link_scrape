@@ -6,47 +6,48 @@ from datetime import datetime as dt
 from time import sleep
 import os
 
-def db_insert(url,alert=None):
-    """
-        Connect to and insert an scraped observation from url(xml)
-        if alerts = True, send email alerts 
-    """
-    engine = create_engine(os.environ['WS_DB_URI'])
+metadata = MetaData()
+
+observation = Table('observation',metadata,
+    Column('station_name', String(255),unique=False),
+    Column('location', String(255), unique=False),
+    Column('latitude', Float(), unique=False),
+    Column('longitude', Float(), unique=False),
+    Column('datetime',DateTime(),unique=True,primary_key=True),
+    Column('date',Date(),unique=False),
+    Column('time',Time(),unique=False),
+    Column('timezone',String(255),unique=False),
+    Column('dewpoint_c', Float(), unique=False),
+    Column('dewpoint_f', Float(), unique=False),
+    Column('heat_index_c', Float(), unique=False),
+    Column('heat_index_f', Float(), unique=False),
+    Column('pressure_in', Float(), unique=False),
+    Column('pressure_mb', Float(), unique=False),
+    Column('relative_humidity', Integer(),unique=False),
+    Column('solar_radiation', Integer(), unique=False),
+    Column('sunrise', String(255), unique=False),
+    Column('sunset', String(255), unique=False),
+    Column('temp_c', Float(), unique=False),
+    Column('temp_f', Float(), unique=False),
+    Column('uv_index', Float(), unique=False),
+    Column('wind_degrees', Integer(), unique=False),
+    Column('wind_dir', String(255), unique=False),
+    Column('wind_kt', Float(), unique=False),
+    Column('wind_mph', Float(), unique=False),
+    Column('windchill_c', Float(), unique=False),
+    Column('windchill_f', Float(), unique=False)
+)
+
+def db_init(DB_URI):
+    engine = create_engine(DB_URI)
     connection = engine.connect()
-    metadata = MetaData()
-
-    observation = Table('observation',metadata,
-        Column('station_name', String(255),unique=False),
-        Column('location', String(255), unique=False),
-        Column('latitude', Float(), unique=False),
-        Column('longitude', Float(), unique=False),
-        Column('datetime',DateTime(),unique=True,primary_key=True),
-        Column('date',Date(),unique=False),
-        Column('time',Time(),unique=False),
-        Column('timezone',String(255),unique=False),
-        Column('dewpoint_c', Float(), unique=False),
-        Column('dewpoint_f', Float(), unique=False),
-        Column('heat_index_c', Float(), unique=False),
-        Column('heat_index_f', Float(), unique=False),
-        Column('pressure_in', Float(), unique=False),
-        Column('pressure_mb', Float(), unique=False),
-        Column('relative_humidity', Integer(),unique=False),
-        Column('solar_radiation', Integer(), unique=False),
-        Column('sunrise', String(255), unique=False),
-        Column('sunset', String(255), unique=False),
-        Column('temp_c', Float(), unique=False),
-        Column('temp_f', Float(), unique=False),
-        Column('uv_index', Float(), unique=False),
-        Column('wind_degrees', Integer(), unique=False),
-        Column('wind_dir', String(255), unique=False),
-        Column('wind_kt', Float(), unique=False),
-        Column('wind_mph', Float(), unique=False),
-        Column('windchill_c', Float(), unique=False),
-        Column('windchill_f', Float(), unique=False)
-    )
-
     metadata.create_all(engine)
+    return(connection)
 
+def db_record(url,connection):
+    """
+        Record from xml url to database connection on ten minute interval
+    """
     error_count = 0
     while True:
         soup = get_soup(url)
@@ -67,12 +68,12 @@ def db_insert(url,alert=None):
                 sleep(600) #10 min * 5
             else:
                 print('Alert Triggered') 
-                if alert is not None:
-                    message = """\
-                    Subject: Alert
+                # if os.environ.get('') is not None:
+                #     message = """\
+                #     Subject: Alert
 
-                    Weather Station is stalled. 
-                    """
-                    send_email(alert['sender'],alert['sender_pass'],alert['receiver'],message)
+                #     Weather Station is stalled. 
+                #     """
+                #     send_email(alert['sender'],alert['sender_pass'],alert['receiver'],message)
                 sleep(3600 * 6) #1 hour * 6
 
